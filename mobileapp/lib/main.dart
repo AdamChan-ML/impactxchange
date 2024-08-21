@@ -646,6 +646,19 @@ class UserProfileScreen extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 16),
+              Text('Communities'),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  SizedBox(width: 8),
+                  CircleAvatar(radius: 25, child: Icon(Icons.sports_soccer), backgroundColor: const Color.fromARGB(255, 147, 234, 150)),
+                  SizedBox(width: 8),
+                  CircleAvatar(radius: 25, child: Icon(Icons.music_note), backgroundColor: const Color.fromARGB(255, 247, 152, 184),),
+                  SizedBox(width: 8),
+                  CircleAvatar(radius: 25, child: Icon(Icons.book_sharp), backgroundColor: const Color.fromARGB(255, 148, 187, 255),),
+                ],
+              ),
+              SizedBox(height: 16),
               Text('Profile'),
               SizedBox(height: 8),
               ListTile(
@@ -903,7 +916,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
     });
   }
   
-  void showMatchedPersonInfo(String name, int age, String interests, String language, String location) {
+  void showMatchedPersonInfo(String name, int age, String interests, String language, String location, String badge) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -917,6 +930,13 @@ class _MatchingScreenState extends State<MatchingScreen> {
             Text("Interests: $interests"),
             Text("Language: $language"),
             Text("Location: $location"),
+            Row(
+              children: [
+                Text("Badges: "),
+                Icon(Icons.star),
+                Text("$badge"),
+              ],
+            )
           ],
         ),
         actions: [
@@ -980,7 +1000,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  showMatchedPersonInfo('Person', 25, 'Football, Music', 'Chinese, Spanish', 'Sunway');
+                  showMatchedPersonInfo('Person', 25, 'Football, Music', 'Chinese, Spanish', 'Sunway', 'Trustworthiness');
                 },
                 child: Text('View Matched Person'),
               ),
