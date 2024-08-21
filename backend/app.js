@@ -31,6 +31,69 @@ function generateUniqueChatId() {
   return crypto.randomBytes(16).toString('hex'); // Generates a 32-character unique ID
 }
 
+// Helper function to extract the domain from an email
+function getEmailDomain(email) {
+  return email.split('@')[1];
+}
+
+// Helper function to calculate the matching score
+function calculateMatchingScore(user1, user2) {
+  let score = 0;
+
+  if (user1.location === user2.location) score += 3;
+  if (user1.hobby === user2.hobby) score += 2;
+  if (getEmailDomain(user1.email) === getEmailDomain(user2.email)) score += 2;
+  if (user1.language !== user2.language) score += 3;
+
+  return score;
+}
+
+// Helper function to sanitize user data
+function sanitizeUserData(user) {
+  const { email, password, ...sanitizedData } = user;
+  return sanitizedData;
+}
+
+// Matching API endpoint
+app.get('/match-user/:userId', (req, res) => {
+  const { userId } = req.params;
+
+  db.ref('users').once('value', snapshot => {
+    const users = snapshot.val();
+    const currentUser = users[userId];
+
+    if (!currentUser) {
+      return res.status(404).send('User not found');
+    }
+
+    let bestMatch = null;
+    let highestScore = 0;
+
+    Object.keys(users).forEach(key => {
+      if (key !== userId) {  // Don't match with oneself
+        const otherUser = users[key];
+        const score = calculateMatchingScore(currentUser, otherUser);
+
+        if (score > highestScore) {
+          highestScore = score;
+          bestMatch = otherUser;
+        }
+      }
+    });
+
+    if (bestMatch) {
+      res.status(200).json({
+        message: 'Match found!',
+        match: sanitizeUserData(bestMatch), // Use sanitized user data
+        score: highestScore
+      });
+    } else {
+      res.status(200).json({ message: 'No suitable match found.' });
+    }
+  })
+  .catch(error => res.status(500).send('Error matching user: ' + error));
+});
+
 // Add new user API endpoint
 app.post('/user', (req, res) => {
   const { email, password, name, hobby, language, location } = req.body;
