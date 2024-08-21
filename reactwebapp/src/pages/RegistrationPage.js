@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sendOTP, registerUser } from '../services/auth';
+import backgroundImage from '../assets/images/landing-bg.png'; 
+import '../styles/global.css';
 
 function RegistrationPage() {
   const [email, setEmail] = useState('');

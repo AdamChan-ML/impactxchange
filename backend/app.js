@@ -1,10 +1,21 @@
 const express = require('express');
 const admin = require('firebase-admin');
+const cors = require('cors');  // Import cors
 const app = express();
-const crypto = require('crypto'); // Add this to generate unique IDs
+const crypto = require('crypto');
 
 // Load Firebase service account key
 const serviceAccount = require('./db-service-account-key.json');
+
+const port = 3001;
+
+// Enable CORS for all origins
+app.use(cors({
+  origin: 'http://localhost:3002'  // Specify the React app's origin
+}));
+
+// Parse JSON bodies
+app.use(express.json());
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
