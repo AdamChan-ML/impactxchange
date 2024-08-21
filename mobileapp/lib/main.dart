@@ -370,110 +370,40 @@ class ChatHistoryPage extends StatelessWidget {
   }
 }
 
-
-// ignore: must_be_immutable
 class ChatPage extends StatelessWidget {
-  late Map<String, dynamic> chatData;
-  List<Map<String, dynamic>> chatMessages = [
-    {'text': 'Are you still travelling?', 'isFromUser': false},
-    {'text': 'Yes, I\'m at Istanbul..', 'isFromUser': true},
-    {'text': 'OoOo, Thats so Cool!', 'isFromUser': false},
-    {'text': 'Raining??', 'isFromUser': false},
-    {'text': 'haha', 'isFromUser': true},
-    {'text': 'Hi, Did you heared?', 'isFromUser': false},
-    {'text': 'Ok!', 'isFromUser': false},
-  ];
-
-  TextEditingController _messageController = TextEditingController();
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Retrieve the chat data passed as an argument
-    chatData = ModalRoute.of(context).settings.arguments as Map<String, dynamic>;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        title: Text('Person'),
+      ),
+      body: ListView(
+        children: [
+          // Implement message bubbles here
+          // Use a combination of Text and Container widgets to create the desired layout
+        ],
+      ),
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.0),
+        height: 60,
+        child: Row(
           children: [
-            CircleAvatar(
-              backgroundImage: AssetImage('assets/profile_1.jpg'), // Replace with actual image path
+            Expanded(
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Send a message',
+                ),
+              ),
             ),
-            SizedBox(width: 8.0),
-            Text(chatData['name'] ?? 'Chat'),
+            IconButton(
+              icon: Icon(Icons.send),
+              onPressed: () {
+                // Implement message sending logic
+              },
+            ),
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: chatMessages.length,
-              itemBuilder: (context, index) {
-                final message = chatMessages[index];
-                return Align(
-                  alignment: message['isFromUser'] ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: message['isFromUser'] ? Colors.blue[100] : Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(message['text']),
-                  ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: InputDecoration(
-                      hintText: 'Type a message...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: () {
-                    _sendMessage();
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
-  }
-
-  void _sendMessage() {
-    if (_messageController.text.isNotEmpty) {
-      setState(() {
-        chatMessages.add({
-          'text': _messageController.text,
-          'isFromUser': true,
-        });
-        _messageController.clear();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    super.dispose();
   }
 }
