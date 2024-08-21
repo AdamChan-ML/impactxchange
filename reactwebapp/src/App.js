@@ -25,7 +25,7 @@ function App() {
         <Route path="/level-complete" element={<LevelCompletePage />} />
         <Route path="/chat-list" element={<ChatListPage />} />
         <Route path="/chat/:id" element={<ChatPage />} />
-        <Route path="/matching" element={<MatchingPage />} />
+        <Route path="/learn/matching" element={<MatchingPage />} />
         <Route path="/match-success" element={<MatchSuccessPage />} />
       </Routes>
     </Router>

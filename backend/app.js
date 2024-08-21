@@ -11,7 +11,7 @@ const port = 3001;
 
 // Enable CORS for all origins
 app.use(cors({
-  origin: 'http://localhost:3002'  // Specify the React app's origin
+  origin: 'http://localhost:3000'  
 }));
 
 // Parse JSON bodies
@@ -32,7 +32,7 @@ function generateUniqueChatId() {
 }
 
 // Add new user API endpoint
-app.post('/add-user', (req, res) => {
+app.post('/user', (req, res) => {
   const { email, password, name, hobby, language, location } = req.body;
 
   // Save user data to Firebase Realtime Database
@@ -47,6 +47,23 @@ app.post('/add-user', (req, res) => {
   })
   .then(() => res.status(200).send('User added successfully'))
   .catch(error => res.status(500).send('Error adding user: ' + error));
+});
+
+// Get user info API endpoint
+app.get('/user/:userId', (req, res) => {
+  const { userId } = req.params;
+
+  // Retrieve user data from Firebase Realtime Database
+  db.ref(`users/${userId}`).once('value')
+    .then(snapshot => {
+      const userInfo = snapshot.val();
+      if (userInfo) {
+        res.status(200).json(userInfo);
+      } else {
+        res.status(404).send('User not found');
+      }
+    })
+    .catch(error => res.status(500).send('Error retrieving user info: ' + error));
 });
 
 // Send message API endpoint
