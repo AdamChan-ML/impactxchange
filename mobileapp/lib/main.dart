@@ -25,6 +25,7 @@ class KakiLinguaApp extends StatelessWidget {
         '/level1': (context) => LearningScreen(),
         '/matching': (context) => MatchingScreen(),
         '/level2': (context) => LearningScreen2(),
+        '/community': (context) => CommunityPage(),
       },
     );
   }
@@ -651,11 +652,41 @@ class UserProfileScreen extends StatelessWidget {
               Row(
                 children: [
                   SizedBox(width: 8),
-                  CircleAvatar(radius: 25, child: Icon(Icons.sports_soccer), backgroundColor: const Color.fromARGB(255, 147, 234, 150)),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/community');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromARGB(255, 147, 234, 150),
+                      shape: CircleBorder(),
+                      padding: EdgeInsets.all(16),
+                    ),
+                    child: Icon(Icons.sports_soccer, color: const Color.fromARGB(255, 0, 0, 0)),
+                  ),
                   SizedBox(width: 8),
-                  CircleAvatar(radius: 25, child: Icon(Icons.music_note), backgroundColor: const Color.fromARGB(255, 247, 152, 184),),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Handle music button press
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromARGB(255, 247, 152, 184),
+                      shape: CircleBorder(),
+                      padding: EdgeInsets.all(16),
+                    ),
+                    child: Icon(Icons.music_note, color: const Color.fromARGB(255, 0, 0, 0)),
+                  ),
                   SizedBox(width: 8),
-                  CircleAvatar(radius: 25, child: Icon(Icons.book_sharp), backgroundColor: const Color.fromARGB(255, 148, 187, 255),),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Handle book button press
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromARGB(255, 148, 187, 255),
+                      shape: CircleBorder(),
+                      padding: EdgeInsets.all(16),
+                    ),
+                    child: Icon(Icons.book_sharp, color: const Color.fromARGB(255, 0, 0, 0)),
+                  ),
                 ],
               ),
               SizedBox(height: 16),
@@ -1027,3 +1058,55 @@ class _MatchingScreenState extends State<MatchingScreen> {
   }
 }
 
+class CommunityPage extends StatelessWidget {
+  final String communityName = 'Football';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('$communityName Community'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Community Header
+            Text(
+              'Welcome to the $communityName Community!',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            // Community Description
+            Text(
+              'Here you can find all the latest updates, discussions, and events related to $communityName.',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            // Example Community Content
+            Expanded(
+              child: ListView.builder(
+                itemCount: 10, // Replace with actual number of posts or events
+                itemBuilder: (context, index) {
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.all(16),
+                      title: Text('$communityName Post #$index'),
+                      subtitle: Text('Description of $communityName post #$index.'),
+                      trailing: Icon(Icons.more_vert),
+                      onTap: () {
+                        // Handle post tap
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
