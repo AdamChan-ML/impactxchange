@@ -17,8 +17,10 @@ class KakiLinguaApp extends StatelessWidget {
         '/signin': (context) => SignInPage(),
         '/signup': (context) => SignUpPage(),
         '/signupInfo': (context) => SignUpInfoPage(),
+        '/profile': (context) => UserProfileScreen(),
         '/chatHistory': (context) => ChatHistoryPage(),
         '/chat': (context) => ChatPage(),
+        '/levelPath': (context) => LevelPathPage(),
       },
     );
   }
@@ -137,7 +139,7 @@ class SignInPage extends StatelessWidget {
                   // Sign In Button
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/chatHistory');
+                      Navigator.pushNamed(context, '/profile');
                     },
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
                     child: Center(
@@ -288,7 +290,7 @@ class SignUpInfoPage extends StatelessWidget {
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      // Add navigation or function here
+                      Navigator.pushNamed(context, '/profile');
                     },
                     child: Text('Register'),
                   ),
@@ -354,7 +356,7 @@ class ChatHistoryPage extends StatelessWidget {
           final chat = chatHistory[index];
           return ListTile(
             leading: CircleAvatar(
-              backgroundImage: AssetImage('assets/profile_${index + 1}.jpg'),
+              backgroundImage: AssetImage('assets/profile${index + 1}.png'),
             ),
             title: Text(chat['name']),
             subtitle: Text(chat['message']),
@@ -370,40 +372,267 @@ class ChatHistoryPage extends StatelessWidget {
   }
 }
 
-class ChatPage extends StatelessWidget {
+class ChatPage extends StatefulWidget {
+  @override
+  _ChatPageState createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
+  List<String> messages = [];
+
+  TextEditingController messageController = TextEditingController();
+
+  void sendMessage() {
+    String message = messageController.text;
+    if (message.isNotEmpty) {
+      setState(() {
+        messages.add(message);
+        messageController.clear();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Person'),
+        title: Text('Chat'),
       ),
-      body: ListView(
+      body: Column(
         children: [
-          // Implement message bubbles here
-          // Use a combination of Text and Container widgets to create the desired layout
-        ],
-      ),
-      bottomNavigationBar: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.0),
-        height: 60,
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Send a message',
-                ),
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.send),
-              onPressed: () {
-                // Implement message sending logic
+          Expanded(
+            child: ListView.builder(
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                return Align(
+                  alignment: Alignment.centerRight, // Align the message to the right
+                  child: Container(
+                    margin: EdgeInsets.only(left: 16, right: 16, top: 8),
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      messages[index],
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                );
               },
             ),
-          ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: messageController,
+                    decoration: InputDecoration(
+                      hintText: 'Type a message...',
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.0),
+                ElevatedButton(
+                  onPressed: sendMessage,
+                  child: Text('Send'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class UserProfileScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Profile'),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundImage: AssetImage('assets/profile1.png'),
+                  ),
+                  SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Person', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      Text('Chinese Native Speaker'),
+                      Text('Learning Level: Level 1'),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Text('Badges'),
+                  SizedBox(width: 16),
+                  Icon(Icons.star),
+                  Text('Trustworthiness'),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/levelPath');
+                    },
+                    child: Text('Start Learning'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/chatHistory');
+                    },
+                    child: Text('Chat'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Text('Friends'),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  CircleAvatar(radius: 25, child: Icon(Icons.add)),
+                  SizedBox(width: 8),
+                  CircleAvatar(radius: 25, child: Text('J')),
+                  SizedBox(width: 8),
+                  CircleAvatar(radius: 25, child: Text('T')),
+                  SizedBox(width: 8),
+                  CircleAvatar(radius: 25, child: Text('Q')),
+                  SizedBox(width: 8),
+                  CircleAvatar(radius: 25, child: Text('B')),
+                ],
+              ),
+              SizedBox(height: 16),
+              Text('Profile'),
+              SizedBox(height: 8),
+              ListTile(
+                leading: Icon(Icons.person),
+                title: Text('Name: Person'),
+              ),
+              ListTile(
+                leading: Icon(Icons.star),
+                title: Text('Hobby: Football, Music'),
+              ),
+              ListTile(
+                leading: Icon(Icons.language),
+                title: Text('Languages: Chinese, Spanish'),
+              ),
+              ListTile(
+                leading: Icon(Icons.location_on),
+                title: Text('Location: Sunway'),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Handle edit profile action
+                },
+                child: Text('Edit'),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+class LevelPathPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Background image
+          Image.asset(
+            'assets/levelsmap.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          
+          // Level buttons
+          Positioned(
+            bottom: 50,
+            left: 50,
+            child: _buildLevelButton('Level 1'),
+          ),
+          Positioned(
+            bottom: 150,
+            right: 50,
+            child: _buildLevelButton('Level 2'),
+          ),
+          Positioned(
+            bottom: 350,
+            left: 80,
+            child: _buildLevelButton('Level 3'),
+          ),
+          Positioned(
+            top: 300,
+            right: 40,
+            child: _buildLevelButton('Level 4'),
+          ),
+          Positioned(
+            top: 200,
+            left: 40,
+            child: _buildLevelButton('Level 5'),
+          ),
+          
+          // Meet someone button
+          Positioned(
+            top: 100,
+            left: 120,
+            child: ElevatedButton(
+              onPressed: () {
+                // Handle meet someone action
+              },
+              child: Text('Meet someone!'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFD38160),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLevelButton(String text) {
+    return ElevatedButton(
+      onPressed: () {
+        // Handle level button press
+      },
+      child: Text(text),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFD38160),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+      ),
+    );
+  }
+}
+
