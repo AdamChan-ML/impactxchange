@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import './api_service.dart';
 
 void main() {
   runApp(KakiLinguaApp());
@@ -401,17 +402,65 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  List<String> messages = [];
-
+  List<Map<String, dynamic>> messages = [];
+  Map<String, dynamic> users = {};
+  final ApiService apiService = ApiService();
   TextEditingController messageController = TextEditingController();
 
-  void sendMessage() {
-    String message = messageController.text;
-    if (message.isNotEmpty) {
+  String currentUserId = '-O4nyJlrtc2TGr5VFinZ';  // Replace with the actual current user ID
+  String chatId = '-O4p5NA_fK6avzFXmCjE';  // Replace with the actual chat ID
+
+  @override
+  void initState() {
+    super.initState();
+    fetchMessages();
+  }
+
+  void fetchMessages() async {
+    try {
+      final response = await apiService.getMessages(chatId);
+      if (response != null) {
+        setState(() {
+          messages = List<Map<String, dynamic>>.from(response['messages']);
+          users = Map<String, dynamic>.from(response['users']);
+        });
+      }
+    } catch (e) {
+      print('Error fetching messages: $e');
+    }
+  }
+
+  void sendMessage() async {
+    String messageText = messageController.text;
+    if (messageText.isNotEmpty) {
+      // Add message to local list for immediate feedback
       setState(() {
-        messages.add(message);
+        messages.add({
+          'sender': currentUserId,
+          'text': messageText,
+          'timestamp': DateTime.now().millisecondsSinceEpoch,
+        });
         messageController.clear();
       });
+
+      // Send message to server
+      try {
+        final response = await apiService.sendMessage(
+          chatId: chatId,
+          senderId: currentUserId,
+          messageText: messageText,
+        );
+
+        // if (response == null) {
+        //   // Handle the case where the message fails to send, e.g., show a toast
+        //   print('Failed to send message');
+        // } else {
+        //   // Optionally refresh messages
+        //   fetchMessages();
+        // }
+      } catch (e) {
+        print('Error sending message: $e');
+      }
     }
   }
 
@@ -503,7 +552,7 @@ class _ChatPageState extends State<ChatPage> {
             Text('Chat'),
             IconButton(
               icon: Icon(Icons.home),
-              onPressed: (){
+              onPressed: () {
                 Navigator.pushNamed(context, '/profile');
               },
             ),
@@ -526,18 +575,34 @@ class _ChatPageState extends State<ChatPage> {
             child: ListView.builder(
               itemCount: messages.length,
               itemBuilder: (context, index) {
+                final message = messages[index];
+                final user = users[message['sender']];
                 return Align(
-                  alignment: Alignment.centerRight,
+                  alignment: message['sender'] == currentUserId
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
                   child: Container(
                     margin: EdgeInsets.only(left: 16, right: 16, top: 8),
                     padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.blue,
+                      color: message['sender'] == currentUserId
+                          ? Colors.blue
+                          : Colors.grey,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      messages[index],
-                      style: TextStyle(color: Colors.white),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user != null ? user['name'] : 'Unknown User',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          message['text'],
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -570,7 +635,6 @@ class _ChatPageState extends State<ChatPage> {
   }
 }
 
-
 class UserProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -594,7 +658,7 @@ class UserProfileScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Person', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      Text('Jia Long', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                       Text('Chinese Native Speaker'),
                       Text('Learning Level: Level 1'),
                       Text('Kaki Points: 1250'),
@@ -694,7 +758,7 @@ class UserProfileScreen extends StatelessWidget {
               SizedBox(height: 8),
               ListTile(
                 leading: Icon(Icons.person),
-                title: Text('Name: Person'),
+                title: Text('Name: Jia Long'),
               ),
               ListTile(
                 leading: Icon(Icons.star),
@@ -1031,7 +1095,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  showMatchedPersonInfo('Person', 25, 'Football, Music', 'Chinese, Spanish', 'Sunway', 'Trustworthiness');
+                  showMatchedPersonInfo('Peter', 25, 'Football, Music', 'Chinese, Spanish', 'Sunway', 'Trustworthiness');
                 },
                 child: Text('View Matched Person'),
               ),

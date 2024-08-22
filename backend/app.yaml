@@ -1,0 +1,4 @@
+ # [START app_yaml]
+ runtime: nodejs20
+ entrypoint: node app.js
+ # [END app_yaml]
