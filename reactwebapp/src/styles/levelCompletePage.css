@@ -1,0 +1,45 @@
+.level-complete-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f5f5f5; /* Light background color */
+  color: #333; /* Dark text color for contrast */
+  font-family: 'Arial', sans-serif;
+  padding: 40px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.level-complete-page h2 {
+  font-size: 2.5rem; /* Larger heading for emphasis */
+  color: #d9534f; /* Brownish-orange color */
+  margin-bottom: 20px;
+}
+
+.level-complete-page p {
+  font-size: 1.25rem; /* Slightly larger text for readability */
+  margin-bottom: 30px;
+}
+
+.level-complete-page button {
+  background-color: #f0ad4e; /* Beige-orange button background */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  margin: 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.level-complete-page button:hover {
+  background-color: #ec971f; /* Darker beige-orange on hover */
+  transform: scale(1.05); /* Slight zoom effect */
+}
+
+.level-complete-page button:disabled {
+  background-color: #ddd; /* Light gray for disabled state */
+  cursor: not-allowed;
+}

@@ -1,0 +1,40 @@
+/* matchSuccessPage.css */
+
+/* Define custom color classes */
+.text-brown {
+    color: #6F4F28; /* Darker brown */
+  }
+  
+  .bg-light-brown {
+    background-color: #D2B48C; /* Light brown */
+  }
+  
+  .bg-beige {
+    background-color: #F5F5DC; /* Beige */
+  }
+  
+  .btn-brown {
+    background-color: #8B4513; /* Saddle brown */
+    color: white;
+    border: none;
+  }
+  
+  .btn-brown:hover {
+    background-color: #704214; /* Darker saddle brown for hover effect */
+  }
+  
+  /* Ensure that the page takes up the full viewport height */
+  .match-success-page {
+    font-family: 'Arial', sans-serif;
+    width: 100%;
+  }
+  
+  /* Ensure card content is centered */
+  .card {
+    width: 100%;
+  }
+  
+  .img-fluid {
+    max-width: 150px;
+  }
+  

@@ -132,3 +132,6 @@ body {
     border-top: 1px solid #ddd;
   }
   
+  .chat-page .sender-name {
+    font-weight: bold;
+  }
