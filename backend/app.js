@@ -11,7 +11,7 @@ const port = 3001;
 
 // Enable CORS for all origins
 app.use(cors({
-  origin: 'http://localhost:3000'  
+  origin: 'http://localhost:3002'  
 }));
 
 // Parse JSON bodies
