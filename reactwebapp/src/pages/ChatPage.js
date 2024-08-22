@@ -16,7 +16,7 @@ function ChatPage() {
     console.log("Fetching messages for chatId:", chatId);
     const fetchMessages = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/get-messages/${chatId}`);
+        const response = await fetch(`https://impactxchange-433008.de.r.appspot.com/get-messages/${chatId}`);
         const data = await response.json();
         if (response.ok) {
           console.log("Messages fetched:", data);
@@ -39,7 +39,7 @@ function ChatPage() {
 
       try {
         console.log('Sending message:', newMessage);
-        const response = await fetch('http://localhost:3001/send-message', {
+        const response = await fetch('https://impactxchange-433008.de.r.appspot.com/send-message', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

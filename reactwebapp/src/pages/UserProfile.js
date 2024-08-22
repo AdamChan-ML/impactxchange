@@ -11,7 +11,7 @@ function UserProfile() {
   const userId = '-O4ntyNmi0_Jjg2-P6do'; // Example ID, replace with dynamic ID if needed
 
   useEffect(() => {
-    fetch(`http://localhost:3001/user/${userId}`)
+    fetch(`https://impactxchange-433008.de.r.appspot.com/user/${userId}`)
       .then(response => response.json())
       .then(data => setProfile(data))
       .catch(error => console.error('Error fetching user data:', error));
