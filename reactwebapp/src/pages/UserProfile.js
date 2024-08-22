@@ -77,15 +77,15 @@ function UserProfile() {
           <h3>Friends</h3>
           <div className="d-flex gap-3">
             <div className="text-center">
-              <img src={avatarMaleImage} alt="Friend 1" className="img-fluid rounded-circle" style={{ width: '50px', height: '50px' }} />
+              <button onClick={() => navigate('/chat/1')}><img src={avatarMaleImage} alt="Friend 1" className="img-fluid rounded-circle" style={{ width: '50px', height: '50px' }} /></button>
               <p>Jia Long</p>
             </div>
             <div className="text-center">
-              <img src={avatarFemaleImage} alt="Friend 2" className="img-fluid rounded-circle" style={{ width: '50px', height: '50px' }} />
+              <button><img src={avatarFemaleImage} alt="Friend 2" className="img-fluid rounded-circle" style={{ width: '50px', height: '50px' }} /></button>
               <p>Senushia</p>
             </div>
             <div className="text-center">
-              <img src={avatarFemaleImage} alt="Friend 3" className="img-fluid rounded-circle" style={{ width: '50px', height: '50px' }} />
+              <button><img src={avatarFemaleImage} alt="Friend 3" className="img-fluid rounded-circle" style={{ width: '50px', height: '50px' }} /></button>
               <p>Amirah</p>
             </div>
           </div>

@@ -55,7 +55,7 @@ function RegistrationPage() {
   return (
     <div className="register-page" style={{ backgroundImage: `url(${backgroundImage})`, padding: '20px' }}>
       <div className="container">
-        <h2 className="mb-4 text-center text-white">Register</h2>
+        <h2 className="mb-4 text-center text-white"></h2>
         <div className="row justify-content-center">
           <div className="col-md-8 form-container"> {/* Apply custom class here */}
             <div className="row">
@@ -143,7 +143,7 @@ function RegistrationPage() {
                 </div>
               </div>
             </div>
-            <button className="btn btn-primary mt-3 w-100" onClick={handleRegister}>Register</button>
+            <button className="btn btn-primary mt-3 w-100" onClick={() => navigate('/profile')}>Register</button>
           </div>
         </div>
       </div>
