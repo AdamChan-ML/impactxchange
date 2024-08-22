@@ -11,7 +11,7 @@ function MatchSuccessPage() {
   useEffect(() => {
     const fetchMatchData = async () => {
       try {
-        const response = await fetch('http://localhost:3001/match-user/-O4ntyNmi0_Jjg2-P6do');
+        const response = await fetch('https://impactxchange-433008.de.r.appspot.com/match-user/-O4ntyNmi0_Jjg2-P6do');
         const data = await response.json();
         setMatchData(data.match);
       } catch (error) {

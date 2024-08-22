@@ -53,7 +53,7 @@ class LandingPage extends StatelessWidget {
                 // App Title
                 Center(
                   child: Text(
-                    'Welcome Back, Buddy!',
+                    'Welcome Back, Kaki!',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 40,

@@ -3,7 +3,6 @@ const admin = require('firebase-admin');
 const cors = require('cors');  // Import cors
 const app = express();
 const crypto = require('crypto'); // Add this to generate unique IDs
-const cors = require('cors'); // Add this to enable CORS
 
 app.use(cors()); // Enable CORS
 // Load Firebase service account key
@@ -11,10 +10,10 @@ const serviceAccount = require('./db-service-account-key.json');
 
 const port = 3001;
 
-// Enable CORS for all origins
-app.use(cors({
-  origin: 'http://localhost:3002'  
-}));
+// // Enable CORS for all origins
+// app.use(cors({
+//   origin: 'http://localhost:3000'  
+// }));
 
 // Parse JSON bodies
 app.use(express.json());
