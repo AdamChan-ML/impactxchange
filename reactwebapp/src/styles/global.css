@@ -32,7 +32,13 @@ body {
     border: 1px solid #ccc;
   }
 
-  .landing-page {
+  .form-container {
+    background-color: rgba(128, 128, 128, 0.6); /* Grey-brown background with 60% opacity */
+    border-radius: 8px; /* Rounded corners */
+    padding: 20px; /* Padding around the content */
+  }  
+
+  .landing-page, .login-page, .register-page {
     background-image: url('../assets/images/landing-bg.png');
     background-size: cover;
     background-position: center;
@@ -132,3 +138,6 @@ body {
     border-top: 1px solid #ddd;
   }
   
+  .chat-page .sender-name {
+    font-weight: bold;
+  }
