@@ -2,7 +2,9 @@ const express = require('express');
 const admin = require('firebase-admin');
 const app = express();
 const crypto = require('crypto'); // Add this to generate unique IDs
+const cors = require('cors'); // Add this to enable CORS
 
+app.use(cors()); // Enable CORS
 // Load Firebase service account key
 const serviceAccount = require('./db-service-account-key.json');
 
@@ -59,6 +61,11 @@ app.post('/send-message', (req, res) => {
       .then(() => res.status(200).send('Message sent'))
       .catch((error) => res.status(500).send('Error sending message: ' + error));
   });
+});
+
+//Testing
+app.get('/testing', (req, res) => {
+  res.status(200).send('Hello World');
 });
 
 // Get message API endpoint
