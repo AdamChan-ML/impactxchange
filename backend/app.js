@@ -21,7 +21,7 @@ const db = admin.database();
 
 app.use(express.json());
 app.use(cors({
-  origin: 'localhost:3000'
+  origin: '*'
 }));
 
 // Setup HTTP server
@@ -65,7 +65,7 @@ function sanitizeUserData(user) {
 app.get('/match-user/:userId', (req, res) => {
   const { userId } = req.params;
 
-  db.ref('users').once('value', snapshot => {
+  db.ref('users').once('value', async (snapshot) => {
     const users = snapshot.val();
     const currentUser = users[userId];
 
@@ -76,29 +76,49 @@ app.get('/match-user/:userId', (req, res) => {
     let bestMatch = null;
     let highestScore = 0;
 
-    Object.keys(users).forEach(key => {
-      if (key !== userId) {  // Don't match with oneself
+    Object.keys(users).forEach((key) => {
+      if (key !== userId) { // Don't match with oneself
         const otherUser = users[key];
         const score = calculateMatchingScore(currentUser, otherUser);
 
         if (score > highestScore) {
           highestScore = score;
-          bestMatch = otherUser;
+          bestMatch = { userId: key, ...otherUser };
         }
       }
     });
 
     if (bestMatch) {
-      res.status(200).json({
-        message: 'Match found!',
-        match: sanitizeUserData(bestMatch), // Use sanitized user data
-        score: highestScore
-      });
+      // Generate a unique chat ID
+      const chatId = generateUniqueChatId();
+
+      try {
+        // Create a new chat in the database
+        await db.ref(`chats/${chatId}`).set({
+          users: {
+            [userId]: true,
+            [bestMatch.userId]: true,
+          },
+          messages: [],
+        });
+
+        // Add the chat ID to both users
+        await db.ref(`users/${userId}/chats/${chatId}`).set(true);
+        await db.ref(`users/${bestMatch.userId}/chats/${chatId}`).set(true);
+
+        res.status(200).json({
+          message: 'Match found!',
+          match: sanitizeUserData(bestMatch),
+          score: highestScore,
+          chatId: chatId, // Return the chat ID to the frontend
+        });
+      } catch (error) {
+        res.status(500).send('Error creating chat and updating users: ' + error.message);
+      }
     } else {
       res.status(200).json({ message: 'No suitable match found.' });
     }
-  })
-  .catch(error => res.status(500).send('Error matching user: ' + error));
+  }).catch((error) => res.status(500).send('Error matching user: ' + error));
 });
 
 // Add new user API endpoint
@@ -110,24 +130,27 @@ app.post('/user', async (req, res) => {
     const userId = userRef.key;
     const chatId = generateUniqueChatId();
 
+    // Create a new chat session for the user
     await db.ref(`chats/${chatId}`).set({
       users: { [userId]: true },
       messages: [],
     });
 
+    // Add the chat ID to the user's record
     await userRef.set({
       email,
       password,
       name,
       hobby,
       language,
-      location
+      location,
+      chats: {
+        [chatId]: true
+      }
     });
 
-    // Ensure the response is JSON
     res.status(200).json({ message: 'User added successfully', userId });
   } catch (error) {
-    // Return error message as JSON
     res.status(500).json({ message: 'Error adding user', error: error.message });
   }
 });
@@ -136,7 +159,6 @@ app.post('/user', async (req, res) => {
 app.get('/user/:userId', (req, res) => {
   const { userId } = req.params;
 
-  // Retrieve user data from Firebase Realtime Database
   db.ref(`users/${userId}`).once('value')
     .then(snapshot => {
       const userInfo = snapshot.val();
@@ -172,12 +194,7 @@ app.post('/send-message', (req, res) => {
   });
 });
 
-//Testing
-app.get('/testing', (req, res) => {
-  res.status(200).send('Hello World');
-});
-
-// Get message API endpoint
+// Get messages API endpoint
 app.get('/get-messages/:chatId', (req, res) => {
   const { chatId } = req.params;
 
@@ -201,6 +218,40 @@ app.get('/get-messages/:chatId', (req, res) => {
     .catch(error => res.status(500).send('Error retrieving messages: ' + error));
 });
 
+// Get friends list API endpoint
+app.get('/user/:userId/friends', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const userSnapshot = await db.ref(`users/${userId}/chats`).once('value');
+    const chatIds = userSnapshot.val();
+
+    if (!chatIds) {
+      return res.status(404).json({ message: 'No friends found' });
+    }
+
+    const friends = [];
+    const friendPromises = Object.keys(chatIds).map(async (chatId) => {
+      const chatSnapshot = await db.ref(`chats/${chatId}/users`).once('value');
+      const usersInChat = chatSnapshot.val();
+
+      // Find the other user in the chat
+      for (const friendId in usersInChat) {
+        if (friendId !== userId) {
+          const friendSnapshot = await db.ref(`users/${friendId}`).once('value');
+          const friendData = sanitizeUserData(friendSnapshot.val());
+          friends.push({ id: friendId, ...friendData, chatId });
+        }
+      }
+    });
+
+    await Promise.all(friendPromises);
+    res.status(200).json(friends);
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving friends', error: error.message });
+  }
+});
+
 // Create chat API endpoint
 app.post('/create-chat', (req, res) => {
   const { user1, user2 } = req.body;
@@ -222,8 +273,20 @@ app.post('/create-chat', (req, res) => {
     },
     messages: [] // Start with an empty message array
   })
+  .then(() => {
+    // Add the chat ID to both users' records
+    return Promise.all([
+      db.ref(`users/${user1}/chats/${chatId}`).set(true),
+      db.ref(`users/${user2}/chats/${chatId}`).set(true)
+    ]);
+  })
   .then(() => res.status(200).json({ chatId }))
   .catch((error) => res.status(500).send('Error creating chat: ' + error));
+});
+
+//Testing
+app.get('/testing', (req, res) => {
+  res.status(200).send('Hello World');
 });
 
 // Start the server

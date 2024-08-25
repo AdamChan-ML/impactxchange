@@ -11,16 +11,20 @@ function MatchSuccessPage() {
   useEffect(() => {
     const fetchMatchData = async () => {
       try {
-        const response = await fetch('https://impactxchange-433008.de.r.appspot.com/match-user/-O4ntyNmi0_Jjg2-P6do');
+        const response = await fetch('http://localhost:3001/match-user/-O57LKryPkkQG6PNhQBv');
         const data = await response.json();
         setMatchData(data.match);
+        
+        if (data.chatId) {
+          navigate(`/chat/${data.chatId}`);
+        }
       } catch (error) {
         console.error('Error fetching match data:', error);
       }
     };
 
     fetchMatchData();
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="match-success-page d-flex flex-column align-items-center justify-content-center min-vh-100 p-4">

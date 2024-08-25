@@ -1,22 +1,34 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState, useContext } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import avatarFemaleImage from '../assets/images/avatar-f.jpg';
 import avatarMaleImage from '../assets/images/avatar-m.jpg';
+import { UserContext } from '../components/UserContext';
 
 function UserProfile() {
   const [profile, setProfile] = useState(null);
+  const [friends, setFriends] = useState([]);
   const navigate = useNavigate();
   const { userId } = useParams(); // Extract userId from URL params
+  const { setUserId } = useContext(UserContext); // Get the function to set the userId in context
 
   useEffect(() => {
+    // Set the userId in the UserContext based on the URL
+    setUserId(userId);
+
+    // Fetch user profile data
     fetch(`https://impactxchange-433008.de.r.appspot.com/user/${userId}`)
       .then(response => response.json())
       .then(data => setProfile(data))
       .catch(error => console.error('Error fetching user data:', error));
-  }, [userId]);
+
+    // Fetch friends list
+    fetch(`http://localhost:3001/user/${userId}/friends`)
+      .then(response => response.json())
+      .then(data => setFriends(data))
+      .catch(error => console.error('Error fetching friends:', error));
+  }, [userId, setUserId]);
 
   if (!profile) {
     return <div>Loading profile...</div>;
@@ -77,18 +89,23 @@ function UserProfile() {
         <div className="col">
           <h3>Friends</h3>
           <div className="d-flex gap-3">
-            <div className="text-center">
-              <button onClick={() => navigate('/chat/1')}><img src={avatarMaleImage} alt="Friend 1" className="img-fluid rounded-circle" style={{ width: '50px', height: '50px' }} /></button>
-              <p>Jia Long</p>
-            </div>
-            <div className="text-center">
-              <button><img src={avatarFemaleImage} alt="Friend 2" className="img-fluid rounded-circle" style={{ width: '50px', height: '50px' }} /></button>
-              <p>Senushia</p>
-            </div>
-            <div className="text-center">
-              <button><img src={avatarFemaleImage} alt="Friend 3" className="img-fluid rounded-circle" style={{ width: '50px', height: '50px' }} /></button>
-              <p>Amirah</p>
-            </div>
+            {friends.length > 0 ? (
+              friends.map((friend, index) => (
+                <div key={index} className="text-center">
+                  <button onClick={() => navigate(`/chat/${friend.chatId}`)}>
+                    <img
+                      src={friend.gender === 'male' ? avatarMaleImage : avatarFemaleImage}
+                      alt={`${friend.name}'s Avatar`}
+                      className="img-fluid rounded-circle"
+                      style={{ width: '50px', height: '50px' }}
+                    />
+                  </button>
+                  <p>{friend.name}</p>
+                </div>
+              ))
+            ) : (
+              <p>No friends found.</p>
+            )}
           </div>
         </div>
       </div>
