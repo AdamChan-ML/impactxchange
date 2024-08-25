@@ -1,25 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import '../styles/global.css';
+import { UserContext } from '../components/UserContext';
 
 function ChatPage() {
   const navigate = useNavigate();
-  const chatId = '-O4p5NA_fK6avzFXmCjE';
-  const userId = '-O4ntyNmi0_Jjg2-P6do'; // Current logged-in user
+  const { id: chatId } = useParams(); // Extract chatId from URL parameters
+  const { userId } = useContext(UserContext); // Retrieve userId from UserContext
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState({});
+  const ws = useRef(null); // WebSocket reference
 
+  // Establish WebSocket connection and handle messages
   useEffect(() => {
-    console.log("Fetching messages for chatId:", chatId);
+    ws.current = new WebSocket('ws://localhost:3001/ws'); // Initialize WebSocket connection
+
+    // Handle incoming messages
+    ws.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'NEW_MESSAGE' && data.chatId === chatId) {
+        setMessages((prevMessages) => [...prevMessages, data.message]);
+      }
+    };
+
+    // Cleanup WebSocket connection on component unmount
+    return () => {
+      if (ws.current) {
+        ws.current.close();
+      }
+    };
+  }, [chatId]);
+
+  // Fetch messages and users when component mounts
+  useEffect(() => {
     const fetchMessages = async () => {
       try {
         const response = await fetch(`https://impactxchange-433008.de.r.appspot.com/get-messages/${chatId}`);
         const data = await response.json();
         if (response.ok) {
-          console.log("Messages fetched:", data);
           setMessages(data.messages);
           setUsers(data.users);
         } else {
@@ -33,34 +54,21 @@ function ChatPage() {
     fetchMessages();
   }, [chatId]);
 
-  const handleSendMessage = async () => {
+  // Send message via WebSocket
+  const handleSendMessage = () => {
     if (message.trim()) {
-      const newMessage = { text: message, sender: userId };
+      const newMessage = {
+        type: 'SEND_MESSAGE',
+        chatId,
+        senderId: userId,
+        messageText: message,
+      };
 
-      try {
-        console.log('Sending message:', newMessage);
-        const response = await fetch('https://impactxchange-433008.de.r.appspot.com/send-message', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            chatId,
-            senderId: userId,
-            messageText: message,
-          }),
-        });
-
-        if (response.ok) {
-          console.log("Message sent:", message);
-          setMessages([...messages, newMessage]);
-          setMessage('');
-        } else {
-          const errorData = await response.json();
-          console.error('Error sending message:', errorData);
-        }
-      } catch (error) {
-        console.error('Error sending message:', error);
+      if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+        ws.current.send(JSON.stringify(newMessage));
+        setMessage(''); // Clear the input field
+      } else {
+        console.error('WebSocket is not open. Unable to send message.');
       }
     }
   };
@@ -69,11 +77,13 @@ function ChatPage() {
     navigate('/chat-list');
   };
 
+  const chatPartnerId = Object.keys(users).find((id) => id !== userId);
+
   return (
     <div className="chat-page container">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2>
-          Chat with {users[userId === '-O4ntyNmi0_Jjg2-P6do' ? '-O4nyJlrtc2TGr5VFinZ' : '-O4ntyNmi0_Jjg2-P6do']?.name}
+          Chat with {users[chatPartnerId]?.name || 'Unknown User'}
         </h2>
         <button 
           className="btn btn-light" 

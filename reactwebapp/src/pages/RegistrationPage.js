@@ -1,23 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { registerUser } from '../services/auth';
-import backgroundImage from '../assets/images/landing-bg.png'; 
-import '../styles/global.css'; // Ensure your CSS file is imported
-import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
+import '../styles/global.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-// List of states in Malaysia
-const states = [
-  "Johor", "Kedah", "Kelantan", "Malacca", "Negeri Sembilan",
-  "Pahang", "Penang", "Perak", "Perlis", "Sabah",
-  "Sarawak", "Selangor", "Terengganu", "Kuala Lumpur", "Labuan", "Putrajaya"
-];
-
-// List of languages
-const languages = [
-  "Malay", "Chinese", "Tamil", // Primary languages
-  "English", "Spanish", "French", "German", "Japanese", "Korean",
-  "Portuguese", "Russian", "Italian", "Arabic", "Turkish", "Hindi"
-];
+const states = ["Johor", "Kedah", "Kelantan", "Malacca", "Negeri Sembilan", "Pahang", "Penang", "Perak", "Perlis", "Sabah", "Sarawak", "Selangor", "Terengganu", "Kuala Lumpur", "Labuan", "Putrajaya"];
+const languages = ["Malay", "Chinese", "Tamil", "English", "Spanish", "French", "German", "Japanese", "Korean", "Portuguese", "Russian", "Italian", "Arabic", "Turkish", "Hindi"];
 
 function RegistrationPage() {
   const [email, setEmail] = useState('');
@@ -30,36 +17,66 @@ function RegistrationPage() {
   const navigate = useNavigate();
 
   const handleRegister = async () => {
-    if (password !== confirmPassword) {
-      alert('Passwords do not match!');
+    // Email validation check
+    const emailPattern = /^[^\s@]+@([^\s@]+\.)+edu\.my$/;
+    if (!emailPattern.test(email)) {
+      alert('Email must end with .edu.my');
       return;
     }
 
+    // Check if any required field is empty
+    if (!email || !password || !confirmPassword || !name || !hobby || !language || !state) {
+      alert('Please fill in all fields.');
+      return;
+    }
+
+    // Password match check
+    if (password !== confirmPassword) {
+      alert('Passwords do not match. Please check again.');
+      return;
+    }
+  
     const userData = {
       email,
       password,
-      name,
       hobby,
       language,
       location: state,
+      name,
     };
-
+  
     try {
-      await registerUser(userData);
-      navigate('/login');
+      const response = await fetch('http://localhost:3001/user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+  
+      // Parse JSON directly from the response
+      const result = await response.json();
+  
+      if (response.ok) {
+        // Redirect to the profile page with the userId
+        navigate(`/profile/${result.userId}`);
+      } else {
+        // Alert error message if the response is not okay
+        alert(result.message || 'Registration failed');
+      }
     } catch (error) {
-      alert(error.message);
+      // Handle fetch errors
+      alert('Error: ' + error.message);
     }
-  };
-
+  };  
+  
   return (
-    <div className="register-page" style={{ backgroundImage: `url(${backgroundImage})`, padding: '20px' }}>
+    <div className="register-page" style={{ padding: '20px' }}>
       <div className="container">
-        <h2 className="mb-4 text-center text-white"></h2>
+        <h2 className="mb-4 text-center"></h2>
         <div className="row justify-content-center">
-          <div className="col-md-8 form-container"> {/* Apply custom class here */}
+          <div className="col-md-8 form-container">
             <div className="row">
-              {/* Left Column */}
               <div className="col-md-6">
                 <div className="form-group">
                   <label>Email</label>
@@ -93,7 +110,6 @@ function RegistrationPage() {
                 </div>
               </div>
 
-              {/* Right Column */}
               <div className="col-md-6">
                 <div className="form-group">
                   <label>Name</label>
@@ -143,7 +159,7 @@ function RegistrationPage() {
                 </div>
               </div>
             </div>
-            <button className="btn btn-primary mt-3 w-100" onClick={() => navigate('/profile')}>Register</button>
+            <button className="btn btn-primary mt-3 w-100" onClick={handleRegister}>Register</button>
           </div>
         </div>
       </div>

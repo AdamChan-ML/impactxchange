@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import avatarFemaleImage from '../assets/images/avatar-f.jpg';
@@ -8,7 +9,7 @@ import avatarMaleImage from '../assets/images/avatar-m.jpg';
 function UserProfile() {
   const [profile, setProfile] = useState(null);
   const navigate = useNavigate();
-  const userId = '-O4ntyNmi0_Jjg2-P6do'; // Example ID, replace with dynamic ID if needed
+  const { userId } = useParams(); // Extract userId from URL params
 
   useEffect(() => {
     fetch(`https://impactxchange-433008.de.r.appspot.com/user/${userId}`)

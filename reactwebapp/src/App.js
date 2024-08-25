@@ -19,7 +19,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegistrationPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/profile" element={<UserProfile />} />
+        <Route path="/profile/:userId" element={<UserProfile />} />
         <Route path="/levels" element={<LevelsPage />} />
         <Route path="/learn/:level" element={<LearningPage />} />
         <Route path="/level-complete" element={<LevelCompletePage />} />

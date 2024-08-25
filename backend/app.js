@@ -1,22 +1,16 @@
 const express = require('express');
 const admin = require('firebase-admin');
-const cors = require('cors');  // Import cors
+const cors = require('cors');
 const app = express();
-const crypto = require('crypto'); // Add this to generate unique IDs
+const crypto = require('crypto');
+const http = require('http');
 
-app.use(cors()); // Enable CORS
+app.use(cors());
+
 // Load Firebase service account key
 const serviceAccount = require('./db-service-account-key.json');
 
 const port = 3001;
-
-// // Enable CORS for all origins
-// app.use(cors({
-//   origin: 'http://localhost:3000'  
-// }));
-
-// Parse JSON bodies
-app.use(express.json());
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -25,7 +19,17 @@ admin.initializeApp({
 
 const db = admin.database();
 
-app.use(express.json()); // To parse incoming JSON request bodies
+app.use(express.json());
+app.use(cors({
+  origin: 'localhost:3000'
+}));
+
+// Setup HTTP server
+const server = http.createServer(app);
+
+// Import and setup WebSocket server
+const setupWebSocketServer = require('./websocket');
+setupWebSocketServer(server); // Attach WebSocket server to the same HTTP server
 
 // Helper function to generate unique chat IDs
 function generateUniqueChatId() {
@@ -54,6 +58,8 @@ function sanitizeUserData(user) {
   const { email, password, ...sanitizedData } = user;
   return sanitizedData;
 }
+
+// API endponts ============================================================
 
 // Matching API endpoint
 app.get('/match-user/:userId', (req, res) => {
@@ -96,21 +102,34 @@ app.get('/match-user/:userId', (req, res) => {
 });
 
 // Add new user API endpoint
-app.post('/user', (req, res) => {
+app.post('/user', async (req, res) => {
   const { email, password, name, hobby, language, location } = req.body;
 
-  // Save user data to Firebase Realtime Database
-  const userRef = db.ref('users').push();
-  userRef.set({
-    email,
-    password,
-    name,
-    hobby,
-    language,
-    location
-  })
-  .then(() => res.status(200).send('User added successfully'))
-  .catch(error => res.status(500).send('Error adding user: ' + error));
+  try {
+    const userRef = db.ref('users').push();
+    const userId = userRef.key;
+    const chatId = generateUniqueChatId();
+
+    await db.ref(`chats/${chatId}`).set({
+      users: { [userId]: true },
+      messages: [],
+    });
+
+    await userRef.set({
+      email,
+      password,
+      name,
+      hobby,
+      language,
+      location
+    });
+
+    // Ensure the response is JSON
+    res.status(200).json({ message: 'User added successfully', userId });
+  } catch (error) {
+    // Return error message as JSON
+    res.status(500).json({ message: 'Error adding user', error: error.message });
+  }
 });
 
 // Get user info API endpoint
@@ -209,6 +228,6 @@ app.post('/create-chat', (req, res) => {
 
 // Start the server
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
