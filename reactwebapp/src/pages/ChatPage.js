@@ -12,11 +12,18 @@ function ChatPage() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState({});
+  const [wsError, setWsError] = useState(null); // WebSocket error state
   const ws = useRef(null); // WebSocket reference
 
   // Establish WebSocket connection and handle messages
   useEffect(() => {
     ws.current = new WebSocket('ws://localhost:3001/ws'); // Initialize WebSocket connection
+
+    // Handle WebSocket open event
+    ws.current.onopen = () => {
+      console.log('WebSocket connection established');
+      setWsError(null); // Clear any previous errors
+    };
 
     // Handle incoming messages
     ws.current.onmessage = (event) => {
@@ -24,6 +31,18 @@ function ChatPage() {
       if (data.type === 'NEW_MESSAGE' && data.chatId === chatId) {
         setMessages((prevMessages) => [...prevMessages, data.message]);
       }
+    };
+
+    // Handle WebSocket error event
+    ws.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setWsError('WebSocket connection error. Please try again later.');
+    };
+
+    // Handle WebSocket close event
+    ws.current.onclose = () => {
+      console.log('WebSocket connection closed');
+      setWsError('WebSocket connection closed. Unable to send messages.');
     };
 
     // Cleanup WebSocket connection on component unmount
@@ -69,6 +88,7 @@ function ChatPage() {
         setMessage(''); // Clear the input field
       } else {
         console.error('WebSocket is not open. Unable to send message.');
+        setWsError('WebSocket is not open. Please try again later.');
       }
     }
   };
@@ -93,6 +113,9 @@ function ChatPage() {
           <i className="bi bi-arrow-left"></i>
         </button>
       </div>
+
+      {wsError && <div className="alert alert-danger">{wsError}</div>} {/* Display WebSocket error */}
+
       <div className="chat-messages mb-3">
         {messages.map((msg, index) => (
           <div

@@ -19,6 +19,19 @@ admin.initializeApp({
 
 const db = admin.database();
 
+const updateMessageBatch = async (chatId, newMessage) => {
+  const chatRef = db.ref(`chats/${chatId}/messages`);
+
+  // Add message to Firebase under the specific chatId
+  await chatRef.push(newMessage)
+    .then(() => {
+      console.log(`Batch update successful for chat ID: ${chatId}`);
+    })
+    .catch((error) => {
+      console.error('Error writing new message to Firebase:', error);
+    });
+};
+
 app.use(express.json());
 app.use(cors({
   origin: '*'
