@@ -19,19 +19,6 @@ admin.initializeApp({
 
 const db = admin.database();
 
-const updateMessageBatch = async (chatId, newMessage) => {
-  const chatRef = db.ref(`chats/${chatId}/messages`);
-
-  // Add message to Firebase under the specific chatId
-  await chatRef.push(newMessage)
-    .then(() => {
-      console.log(`Batch update successful for chat ID: ${chatId}`);
-    })
-    .catch((error) => {
-      console.error('Error writing new message to Firebase:', error);
-    });
-};
-
 app.use(express.json());
 app.use(cors({
   origin: '*'
@@ -61,6 +48,8 @@ function calculateMatchingScore(user1, user2) {
   if (user1.location === user2.location) score += 3;
   if (user1.hobby === user2.hobby) score += 2;
   if (getEmailDomain(user1.email) === getEmailDomain(user2.email)) score += 2;
+
+  // Users with different languages get a higher score
   if (user1.language !== user2.language) score += 3;
 
   return score;
@@ -89,15 +78,19 @@ app.get('/match-user/:userId', (req, res) => {
     let bestMatch = null;
     let highestScore = 0;
 
-    Object.keys(users).forEach((key) => {
-      if (key !== userId) { // Don't match with oneself
-        const otherUser = users[key];
-        const score = calculateMatchingScore(currentUser, otherUser);
+    // Filter out users who share the same language as the current user to reduce matching redundancy
+    const filteredUsers = Object.keys(users).filter((key) => 
+      key !== userId && users[key].language !== currentUser.language
+    );
 
-        if (score > highestScore) {
-          highestScore = score;
-          bestMatch = { userId: key, ...otherUser };
-        }
+    // Now find the best match from the filtered users
+    filteredUsers.forEach((key) => {
+      const otherUser = users[key];
+      const score = calculateMatchingScore(currentUser, otherUser);
+
+      if (score > highestScore) {
+        highestScore = score;
+        bestMatch = { userId: key, ...otherUser };
       }
     });
 
