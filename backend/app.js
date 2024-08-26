@@ -64,27 +64,50 @@ function sanitizeUserData(user) {
 // API endponts ============================================================
 
 // Matching API endpoint
-app.get('/match-user/:userId', (req, res) => {
+app.get('/match-user/:userId', async (req, res) => {
   const { userId } = req.params;
 
-  db.ref('users').once('value', async (snapshot) => {
-    const users = snapshot.val();
-    const currentUser = users[userId];
+  try {
+    // Fetch user data
+    const userSnapshot = await db.ref(`users/${userId}`).once('value');
+    const currentUser = userSnapshot.val();
 
     if (!currentUser) {
       return res.status(404).send('User not found');
     }
 
+    // Fetch all users
+    const usersSnapshot = await db.ref('users').once('value');
+    const users = usersSnapshot.val();
+
+    // Retrieve the user's chat IDs to determine friends
+    const chatsSnapshot = await db.ref(`users/${userId}/chats`).once('value');
+    const chatIds = chatsSnapshot.val() || {};
+
+    // Get the list of friends based on chat IDs
+    const friends = new Set();
+    await Promise.all(Object.keys(chatIds).map(async (chatId) => {
+      const chatSnapshot = await db.ref(`chats/${chatId}/users`).once('value');
+      const chatUsers = chatSnapshot.val() || {};
+
+      // Exclude the current user and add other users as friends
+      for (const friendId in chatUsers) {
+        if (friendId !== userId) {
+          friends.add(friendId);
+        }
+      }
+    }));
+
     let bestMatch = null;
     let highestScore = 0;
 
-    // Filter out users who share the same language as the current user to reduce matching redundancy
-    const filteredUsers = Object.keys(users).filter((key) => 
-      key !== userId && users[key].language !== currentUser.language
+    // Filter users: exclude current user and those already in the friends list
+    const filteredUsers = Object.keys(users).filter(key => 
+      key !== userId && !friends.has(key) && users[key].language !== currentUser.language
     );
 
-    // Now find the best match from the filtered users
-    filteredUsers.forEach((key) => {
+    // Find the best match from the filtered users
+    filteredUsers.forEach(key => {
       const otherUser = users[key];
       const score = calculateMatchingScore(currentUser, otherUser);
 
@@ -124,7 +147,9 @@ app.get('/match-user/:userId', (req, res) => {
     } else {
       res.status(200).json({ message: 'No suitable match found.' });
     }
-  }).catch((error) => res.status(500).send('Error matching user: ' + error));
+  } catch (error) {
+    res.status(500).send('Error matching user: ' + error.message);
+  }
 });
 
 // Add new user API endpoint
@@ -256,6 +281,23 @@ app.get('/user/:userId/friends', async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error retrieving friends', error: error.message });
   }
+});
+
+// Get User By Email API
+app.get('/user-by-email/:email', (req, res) => {
+  const { email } = req.params;
+
+  db.ref('users').orderByChild('email').equalTo(email).once('value')
+    .then(snapshot => {
+      const users = snapshot.val();
+      if (users) {
+        const userId = Object.keys(users)[0];
+        res.status(200).json({ userId, ...users[userId] });
+      } else {
+        res.status(404).send('User not found');
+      }
+    })
+    .catch(error => res.status(500).send('Error retrieving user info: ' + error));
 });
 
 // Create chat API endpoint

@@ -103,7 +103,7 @@ function ChatPage() {
     <div className="chat-page container">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2>
-          Chat with {users[chatPartnerId]?.name || 'Unknown User'}
+          Chat
         </h2>
         <button 
           className="btn btn-light" 
