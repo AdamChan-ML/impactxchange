@@ -5,7 +5,7 @@ function LessonCard({ word, pronunciation, translation, language, onComplete }) 
   return (
     <div className="lesson-card">
       <h2>Level 1 ({language})</h2>
-      <h1 className="lesson-word">{word}</h1>
+      <h1 className="lesson-word"><strong>{word}</strong></h1>
       <p className="lesson-pronunciation">Pronunciation: <span>{pronunciation}</span></p>
       <div className="lesson-translation-box">
         <p>Meaning:</p>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -6,29 +6,36 @@ import avatarFemaleImage from '../assets/images/avatar-f.jpg';
 import avatarMaleImage from '../assets/images/avatar-m.jpg';
 import { UserContext } from '../components/UserContext';
 
-function UserProfile() {
+const UserProfile = React.memo(() => {
   const [profile, setProfile] = useState(null);
   const [friends, setFriends] = useState([]);
   const navigate = useNavigate();
-  const { userId } = useParams(); // Extract userId from URL params
-  const { setUserId } = useContext(UserContext); // Get the function to set the userId in context
+  const { userId } = useParams();
+  const { setUserId } = useContext(UserContext);
 
   useEffect(() => {
-    // Set the userId in the UserContext based on the URL
     setUserId(userId);
 
-    // Fetch user profile data
-    fetch(`https://impactxchange-433008.de.r.appspot.com/user/${userId}`)
-      .then(response => response.json())
-      .then(data => setProfile(data))
-      .catch(error => console.error('Error fetching user data:', error));
+    const fetchUserData = async () => {
+      try {
+        const profileResponse = await fetch(`https://impactxchange-433008.de.r.appspot.com/user/${userId}`);
+        const profileData = await profileResponse.json();
+        setProfile(profileData);
 
-    // Fetch friends list
-    fetch(`http://localhost:3001/user/${userId}/friends`)
-      .then(response => response.json())
-      .then(data => setFriends(data))
-      .catch(error => console.error('Error fetching friends:', error));
+        const friendsResponse = await fetch(`http://localhost:3001/user/${userId}/friends`);
+        const friendsData = await friendsResponse.json();
+        setFriends(friendsData);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
   }, [userId, setUserId]);
+
+  const handleNavigate = useCallback((path) => {
+    navigate(path);
+  }, [navigate]);
 
   if (!profile) {
     return <div>Loading profile...</div>;
@@ -43,6 +50,7 @@ function UserProfile() {
             alt="User Avatar"
             className="img-fluid rounded-circle"
             style={{ width: '150px', height: '150px' }}
+            loading="lazy"
           />
         </div>
         <div className="col-md-8">
@@ -59,8 +67,8 @@ function UserProfile() {
             <p><strong>Hobby:</strong> {profile.hobby}</p>
             <p><strong>Languages:</strong> {profile.language}</p>
             <p><strong>Location:</strong> {profile.location}</p>
-            <button 
-              onClick={() => navigate('/edit-profile')}
+            <button
+              onClick={() => handleNavigate('/edit-profile')}
               className="btn btn-danger"
             >
               Edit
@@ -75,8 +83,8 @@ function UserProfile() {
           <div className="p-3 bg-warning text-dark rounded">
             <h4>Learning Level</h4>
             <p><strong>Level 1</strong></p>
-            <button 
-              onClick={() => navigate('/levels')}
+            <button
+              onClick={() => handleNavigate('/levels')}
               className="btn btn-primary"
             >
               Start Learning
@@ -92,12 +100,13 @@ function UserProfile() {
             {friends.length > 0 ? (
               friends.map((friend, index) => (
                 <div key={index} className="text-center">
-                  <button onClick={() => navigate(`/chat/${friend.chatId}`)}>
+                  <button onClick={() => handleNavigate(`/chat/${friend.chatId}`)}>
                     <img
                       src={friend.gender === 'male' ? avatarMaleImage : avatarFemaleImage}
                       alt={`${friend.name}'s Avatar`}
                       className="img-fluid rounded-circle"
                       style={{ width: '50px', height: '50px' }}
+                      loading="lazy"
                     />
                   </button>
                   <p>{friend.name}</p>
@@ -111,6 +120,6 @@ function UserProfile() {
       </div>
     </div>
   );
-}
+});
 
 export default UserProfile;

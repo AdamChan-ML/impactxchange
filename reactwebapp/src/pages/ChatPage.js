@@ -1,31 +1,38 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, useCallback, memo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import '../styles/global.css';
 import { UserContext } from '../components/UserContext';
 
+// Memoized component to prevent unnecessary re-renders
+const ChatBubble = memo(({ msg, userId, users }) => (
+  <div className={`chat-bubble ${msg.sender === userId ? 'self' : ''}`}>
+    <div className="sender-name">
+      {users[msg.sender]?.name || 'Unknown User'}
+    </div>
+    <div className="message-text">{msg.text}</div>
+  </div>
+));
+
 function ChatPage() {
   const navigate = useNavigate();
-  const { id: chatId } = useParams(); // Extract chatId from URL parameters
-  const { userId } = useContext(UserContext); // Retrieve userId from UserContext
+  const { id: chatId } = useParams();
+  const { userId } = useContext(UserContext);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState({});
-  const [wsError, setWsError] = useState(null); // WebSocket error state
-  const ws = useRef(null); // WebSocket reference
+  const [wsError, setWsError] = useState(null);
+  const ws = useRef(null);
 
-  // Establish WebSocket connection and handle messages
+  // Establish WebSocket connection
   useEffect(() => {
-    ws.current = new WebSocket('ws://localhost:3001/ws'); // Initialize WebSocket connection
-
-    // Handle WebSocket open event
+    ws.current = new WebSocket('ws://localhost:3001/ws');
     ws.current.onopen = () => {
       console.log('WebSocket connection established');
-      setWsError(null); // Clear any previous errors
+      setWsError(null);
     };
 
-    // Handle incoming messages
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'NEW_MESSAGE' && data.chatId === chatId) {
@@ -33,19 +40,16 @@ function ChatPage() {
       }
     };
 
-    // Handle WebSocket error event
     ws.current.onerror = (error) => {
       console.error('WebSocket error:', error);
       setWsError('WebSocket connection error. Please try again later.');
     };
 
-    // Handle WebSocket close event
     ws.current.onclose = () => {
       console.log('WebSocket connection closed');
       setWsError('WebSocket connection closed. Unable to send messages.');
     };
 
-    // Cleanup WebSocket connection on component unmount
     return () => {
       if (ws.current) {
         ws.current.close();
@@ -53,7 +57,7 @@ function ChatPage() {
     };
   }, [chatId]);
 
-  // Fetch messages and users when component mounts
+  // Fetch messages when component mounts
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -73,8 +77,8 @@ function ChatPage() {
     fetchMessages();
   }, [chatId]);
 
-  // Send message via WebSocket
-  const handleSendMessage = () => {
+  // Use callback to optimize message sending logic
+  const handleSendMessage = useCallback(() => {
     if (message.trim()) {
       const newMessage = {
         type: 'SEND_MESSAGE',
@@ -85,26 +89,22 @@ function ChatPage() {
 
       if (ws.current && ws.current.readyState === WebSocket.OPEN) {
         ws.current.send(JSON.stringify(newMessage));
-        setMessage(''); // Clear the input field
+        setMessage('');
       } else {
         console.error('WebSocket is not open. Unable to send message.');
         setWsError('WebSocket is not open. Please try again later.');
       }
     }
-  };
+  }, [message, chatId, userId]);
 
-  const handleBackToChatList = () => {
+  const handleBackToChatList = useCallback(() => {
     navigate('/chat-list');
-  };
-
-  const chatPartnerId = Object.keys(users).find((id) => id !== userId);
+  }, [navigate]);
 
   return (
     <div className="chat-page container">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>
-          Chat
-        </h2>
+        <h2>Chat</h2>
         <button 
           className="btn btn-light" 
           onClick={handleBackToChatList} 
@@ -114,21 +114,14 @@ function ChatPage() {
         </button>
       </div>
 
-      {wsError && <div className="alert alert-danger">{wsError}</div>} {/* Display WebSocket error */}
+      {wsError && <div className="alert alert-danger">{wsError}</div>}
 
       <div className="chat-messages mb-3">
         {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`chat-bubble ${msg.sender === userId ? 'self' : ''}`}
-          >
-            <div className="sender-name">
-              {users[msg.sender]?.name || 'Unknown User'}
-            </div>
-            <div className="message-text">{msg.text}</div>
-          </div>
+          <ChatBubble key={index} msg={msg} userId={userId} users={users} />
         ))}
       </div>
+
       <div className="chat-input d-flex">
         <input
           type="text"

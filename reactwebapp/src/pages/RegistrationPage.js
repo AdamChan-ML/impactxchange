@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/global.css';
+import '../styles/global.min.css';  // minified version of global.css
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const states = ["Johor", "Kedah", "Kelantan", "Malacca", "Negeri Sembilan", "Pahang", "Penang", "Perak", "Perlis", "Sabah", "Sarawak", "Selangor", "Terengganu", "Kuala Lumpur", "Labuan", "Putrajaya"];
@@ -17,20 +17,17 @@ function RegistrationPage() {
   const navigate = useNavigate();
 
   const handleRegister = async () => {
-    // Email validation check
     const emailPattern = /^[^\s@]+@([^\s@]+\.)+edu\.my$/;
     if (!emailPattern.test(email)) {
       alert('Email must end with .edu.my');
       return;
     }
 
-    // Check if any required field is empty
     if (!email || !password || !confirmPassword || !name || !hobby || !language || !state) {
       alert('Please fill in all fields.');
       return;
     }
 
-    // Password match check
     if (password !== confirmPassword) {
       alert('Passwords do not match. Please check again.');
       return;
@@ -54,18 +51,14 @@ function RegistrationPage() {
         body: JSON.stringify(userData),
       });
   
-      // Parse JSON directly from the response
       const result = await response.json();
   
       if (response.ok) {
-        // Redirect to the profile page with the userId
         navigate(`/profile/${result.userId}`);
       } else {
-        // Alert error message if the response is not okay
         alert(result.message || 'Registration failed');
       }
     } catch (error) {
-      // Handle fetch errors
       alert('Error: ' + error.message);
     }
   };  
@@ -79,64 +72,76 @@ function RegistrationPage() {
             <div className="row">
               <div className="col-md-6">
                 <div className="form-group">
-                  <label>Email</label>
+                  <label htmlFor="email">Email</label>
                   <input
                     type="email"
                     className="form-control"
+                    id="email"
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    aria-label="Email"
                   />
                 </div>
                 <div className="form-group">
-                  <label>Password</label>
+                  <label htmlFor="password">Password</label>
                   <input
                     type="password"
                     className="form-control"
+                    id="password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    aria-label="Password"
                   />
                 </div>
                 <div className="form-group">
-                  <label>Confirm Password</label>
+                  <label htmlFor="confirmPassword">Confirm Password</label>
                   <input
                     type="password"
                     className="form-control"
+                    id="confirmPassword"
                     placeholder="Confirm Password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    aria-label="Confirm Password"
                   />
                 </div>
               </div>
 
               <div className="col-md-6">
                 <div className="form-group">
-                  <label>Name</label>
+                  <label htmlFor="name">Name</label>
                   <input
                     type="text"
                     className="form-control"
+                    id="name"
                     placeholder="Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    aria-label="Name"
                   />
                 </div>
                 <div className="form-group">
-                  <label>Hobby</label>
+                  <label htmlFor="hobby">Hobby</label>
                   <input
                     type="text"
                     className="form-control"
+                    id="hobby"
                     placeholder="Hobby"
                     value={hobby}
                     onChange={(e) => setHobby(e.target.value)}
+                    aria-label="Hobby"
                   />
                 </div>
                 <div className="form-group">
-                  <label>Language Spoken</label>
+                  <label htmlFor="language">Language Spoken</label>
                   <select
                     className="form-control"
+                    id="language"
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
+                    aria-label="Language Spoken"
                   >
                     <option value="">Select Language</option>
                     {languages.map((lang) => (
@@ -145,11 +150,13 @@ function RegistrationPage() {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>State</label>
+                  <label htmlFor="state">State</label>
                   <select
                     className="form-control"
+                    id="state"
                     value={state}
                     onChange={(e) => setState(e.target.value)}
+                    aria-label="State"
                   >
                     <option value="">Select State</option>
                     {states.map((stateName) => (

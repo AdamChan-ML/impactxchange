@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import '../styles/levelCompletePage.css'; // Import the CSS file
+import '../styles/learningPage.css';
 
 function LevelCompletePage() {
   const { level } = useParams();  // Get the current level from the URL
