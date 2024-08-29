@@ -22,7 +22,7 @@ const UserProfile = React.memo(() => {
         const profileData = await profileResponse.json();
         setProfile(profileData);
 
-        const friendsResponse = await fetch(`http://localhost:3001/user/${userId}/friends`);
+        const friendsResponse = await fetch(`https://impactxchange-4fc6d.as.r.appspot.com/user/${userId}/friends`);
         const friendsData = await friendsResponse.json();
         setFriends(friendsData);
       } catch (error) {

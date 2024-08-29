@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class ChatHistoryPage extends StatelessWidget {
   List<Map<String, dynamic>> chatHistory = [
     {
-      'name': 'Peter',
+      'name': 'Senushia',
       'message': 'Hi, Peter. Hope you\'re doing...',
       'timestamp': '29 mar',
     },

@@ -1,69 +1,122 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'api_service.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import './api_service.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class ChatPage extends StatefulWidget {
+  final String chatId = '56f51b4f84c027b657db243479ed6081';
+  final String currentUserId = '-O5LaqhSXq9XWRp-wJr9';
+
   @override
   _ChatPageState createState() => _ChatPageState();
 }
 
 class _ChatPageState extends State<ChatPage> {
   List<Map<String, dynamic>> messages = [];
-  Map<String, dynamic> users = {};
   final ApiService apiService = ApiService();
+  WebSocketChannel? channel;
   TextEditingController messageController = TextEditingController();
-
-  String currentUserId = '-O4nyJlrtc2TGr5VFinZ';  // Replace with the actual current user ID
-  String chatId = '-O4p5NA_fK6avzFXmCjE';  // Replace with the actual chat ID
+  late Box messageBox;
 
   @override
   void initState() {
     super.initState();
-    fetchMessages();
+    _initializeHive();
   }
 
-  void fetchMessages() async {
-    try {
-      final response = await apiService.getMessages(chatId);
-      if (response != null) {
+  Future<void> _initializeHive() async {
+    await Hive.initFlutter();
+    messageBox = await Hive.openBox('chat_${widget.chatId}');
+    await fetchMessages();
+    // Connect to the WebSocket server
+    channel = IOWebSocketChannel.connect('wss://kakilingua-be-nl2s2bqana-as.a.run.app/ws');
+
+    // Listen for incoming messages
+    channel?.stream.listen((message) {
+      final decodedMessage = _parseMessage(message);
+      if (decodedMessage != null) {
         setState(() {
-          messages = List<Map<String, dynamic>>.from(response['messages']);
-          users = Map<String, dynamic>.from(response['users']);
+          messages.add(decodedMessage);
         });
+        saveMessages(); // Save new messages to Hive
+      }
+    }, onDone: () {
+      print('WebSocket connection closed');
+    }, onError: (error) {
+      print('WebSocket error: $error');
+    });
+  }
+
+  Map<String, dynamic>? _parseMessage(dynamic message) {
+    try {
+      final data = jsonDecode(message);
+      if (data['type'] == 'NEW_MESSAGE' && data['chatId'] == widget.chatId) {
+        return {
+          'sender': data['message']['sender'],
+          'text': data['message']['text'],
+          'timestamp': data['message']['timestamp'],
+        };
+      }
+    } catch (e) {
+      print('Error parsing message: $e');
+    }
+    return null;
+  }
+
+  @override
+  void dispose() {
+    channel?.sink.close();
+    super.dispose();
+  }
+
+  Future<void> fetchMessages() async {
+    try {
+      // Load messages from Hive
+      final cachedMessages = messageBox.get('messages', defaultValue: []);
+      if (cachedMessages.isNotEmpty) {
+        setState(() {
+          messages = List<Map<String, dynamic>>.from(cachedMessages);
+        });
+      }
+
+      // Fetch messages from API
+      final response = await apiService.getMessages(widget.chatId);
+      if (response != null) {
+        final newMessages = List<Map<String, dynamic>>.from(response['messages']);
+        setState(() {
+          messages = newMessages;
+        });
+        saveMessages(); // Save fetched messages to Hive
       }
     } catch (e) {
       print('Error fetching messages: $e');
     }
   }
 
-  void sendMessage() async {
-    String messageText = messageController.text;
-    if (messageText.isNotEmpty) {
-      // Add message to local list for immediate feedback
-      setState(() {
-        messages.add({
-          'sender': currentUserId,
-          'text': messageText,
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-        });
-        messageController.clear();
-      });
+  Future<void> saveMessages() async {
+    try {
+      final messagesMap = messages.map((e) => e).toList();
+      await messageBox.put('messages', messagesMap);
+    } catch (e) {
+      print('Error saving messages: $e');
+    }
+  }
 
-      // Send message to server
+  void sendMessage() {
+    if (messageController.text.isNotEmpty) {
+      final message = {
+        'type': 'SEND_MESSAGE',
+        'chatId': widget.chatId,
+        'senderId': widget.currentUserId,
+        'messageText': messageController.text,
+      };
+
       try {
-        final response = await apiService.sendMessage(
-          chatId: chatId,
-          senderId: currentUserId,
-          messageText: messageText,
-        );
-
-        // if (response == null) {
-        //   // Handle the case where the message fails to send, e.g., show a toast
-        //   print('Failed to send message');
-        // } else {
-        //   // Optionally refresh messages
-        //   fetchMessages();
-        // }
+        channel?.sink.add(jsonEncode(message)); // Send message as JSON
+        messageController.clear();
       } catch (e) {
         print('Error sending message: $e');
       }
@@ -151,27 +204,19 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Chat'),
-            IconButton(
-              icon: Icon(Icons.home),
-              onPressed: () {
-                Navigator.pushNamed(context, '/profile');
-              },
-            ),
-          ],
-        ),
+        title: Text('Chat'),
         actions: [
           IconButton(
             icon: Icon(Icons.report),
-            onPressed: reportMessage,
+            onPressed: () {
+              reportMessage();
+            },
           ),
           IconButton(
             icon: Icon(Icons.star),
-            onPressed: rateChat,
+            onPressed: () {
+             rateChat();
+            },
           ),
         ],
       ),
@@ -182,33 +227,19 @@ class _ChatPageState extends State<ChatPage> {
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final message = messages[index];
-                final user = users[message['sender']];
+                final isCurrentUser = message['sender'] == widget.currentUserId;
                 return Align(
-                  alignment: message['sender'] == currentUserId
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
+                  alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
-                    margin: EdgeInsets.only(left: 16, right: 16, top: 8),
+                    margin: EdgeInsets.all(8),
                     padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: message['sender'] == currentUserId
-                          ? Colors.blue
-                          : Colors.grey,
+                      color: isCurrentUser ? Colors.blue : Colors.grey,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user != null ? user['name'] : 'Unknown User',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          message['text'],
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ],
+                    child: Text(
+                      message['text'],
+                      style: TextStyle(color: Colors.white),
                     ),
                   ),
                 );
@@ -240,4 +271,3 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 }
-

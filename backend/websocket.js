@@ -70,7 +70,7 @@ function setupWebSocketServer(server) {
 
       // Append new messages to the existing ones
       const updatedMessages = existingMessages.concat(newMessages);
-
+      
       // Save the batched messages to the database
       await messagesRef.set(updatedMessages);
       console.log(`Batch update successful for chatId: ${chatId}`);

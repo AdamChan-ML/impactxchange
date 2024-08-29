@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import './main.dart'; // Ensure this import is correct based on your project structure
 
 class UserProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Profile'),
+        actions: [
+          Switch(
+            value: themeNotifier.isDarkMode,
+            onChanged: (value) {
+              themeNotifier.toggleTheme();
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -23,7 +35,13 @@ class UserProfileScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Jia Long', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      Text(
+                        'Jia Ern',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       Text('Chinese Native Speaker'),
                       Text('Learning Level: Level 1'),
                       Text('Kaki Points: 1250'),
@@ -90,7 +108,7 @@ class UserProfileScreen extends StatelessWidget {
                       shape: CircleBorder(),
                       padding: EdgeInsets.all(16),
                     ),
-                    child: Icon(Icons.sports_soccer, color: const Color.fromARGB(255, 0, 0, 0)),
+                    child: Icon(Icons.sports_soccer),
                   ),
                   SizedBox(width: 8),
                   ElevatedButton(
@@ -102,7 +120,7 @@ class UserProfileScreen extends StatelessWidget {
                       shape: CircleBorder(),
                       padding: EdgeInsets.all(16),
                     ),
-                    child: Icon(Icons.music_note, color: const Color.fromARGB(255, 0, 0, 0)),
+                    child: Icon(Icons.music_note),
                   ),
                   SizedBox(width: 8),
                   ElevatedButton(
@@ -114,7 +132,7 @@ class UserProfileScreen extends StatelessWidget {
                       shape: CircleBorder(),
                       padding: EdgeInsets.all(16),
                     ),
-                    child: Icon(Icons.book_sharp, color: const Color.fromARGB(255, 0, 0, 0)),
+                    child: Icon(Icons.book_sharp),
                   ),
                 ],
               ),
@@ -123,7 +141,7 @@ class UserProfileScreen extends StatelessWidget {
               SizedBox(height: 8),
               ListTile(
                 leading: Icon(Icons.person),
-                title: Text('Name: Jia Long'),
+                title: Text('Name: Jia Ern'),
               ),
               ListTile(
                 leading: Icon(Icons.star),

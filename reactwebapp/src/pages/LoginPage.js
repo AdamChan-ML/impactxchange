@@ -14,7 +14,7 @@ const LoginPage = () => {
 
     try {
       // Fetch user data by email
-      const response = await axios.get(`http://localhost:3001/user-by-email/${email}`);
+      const response = await axios.get(`https://impactxchange-4fc6d.as.r.appspot.com/user-by-email/${email}`);
       const userData = response.data;
 
       console.log("User data fetched:", userData);  // Debugging: Check what data is fetched

@@ -27,7 +27,7 @@ function ChatPage() {
 
   // Establish WebSocket connection
   useEffect(() => {
-    ws.current = new WebSocket('ws://localhost:3001/ws');
+    ws.current = new WebSocket('wss://kakilingua-be-nl2s2bqana-as.a.run.app/ws');
     ws.current.onopen = () => {
       console.log('WebSocket connection established');
       setWsError(null);
