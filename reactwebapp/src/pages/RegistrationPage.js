@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/global.min.css';  // minified version of global.css
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const states = ["Johor", "Kedah", "Kelantan", "Malacca", "Negeri Sembilan", "Pahang", "Penang", "Perak", "Perlis", "Sabah", "Sarawak", "Selangor", "Terengganu", "Kuala Lumpur", "Labuan", "Putrajaya"];
@@ -43,7 +42,7 @@ function RegistrationPage() {
     };
   
     try {
-      const response = await fetch('http://localhost:3001/user', {
+      const response = await fetch('https://impactxchange-4fc6d.as.r.appspot.com/user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -63,12 +62,44 @@ function RegistrationPage() {
     }
   };  
   
+  // Inline styles to ensure dark grey background
+  const styles = {
+    registerPage: {
+      backgroundColor: '#333', // Dark grey background
+      color: '#f5f5f5', // Light text color
+      minHeight: '100vh', // Full viewport height
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px',
+    },
+    formContainer: {
+      backgroundColor: '#444', // Slightly lighter grey for form container
+      borderRadius: '8px',
+      padding: '20px',
+      width: '100%',
+      maxWidth: '600px',
+    },
+    button: {
+      backgroundColor: '#007bff', // Bootstrap primary color
+      border: 'none',
+      color: '#fff',
+      padding: '10px 20px',
+      borderRadius: '5px',
+      cursor: 'pointer',
+      width: '100%',
+    },
+    buttonHover: {
+      backgroundColor: '#0056b3', // Darker blue for hover
+    }
+  };
+
   return (
-    <div className="register-page" style={{ padding: '20px' }}>
-      <div className="container">
-        <h2 className="mb-4 text-center"></h2>
+    <div style={styles.registerPage}>
+      <div style={styles.formContainer}>
+        <h2 className="mb-4 text-center">Register</h2>
         <div className="row justify-content-center">
-          <div className="col-md-8 form-container">
+          <div className="col-md-12">
             <div className="row">
               <div className="col-md-6">
                 <div className="form-group">
@@ -166,7 +197,14 @@ function RegistrationPage() {
                 </div>
               </div>
             </div>
-            <button className="btn btn-primary mt-3 w-100" onClick={handleRegister}>Register</button>
+            <button
+              style={styles.button}
+              onMouseOver={e => e.currentTarget.style.backgroundColor = styles.buttonHover.backgroundColor}
+              onMouseOut={e => e.currentTarget.style.backgroundColor = styles.button.backgroundColor}
+              onClick={handleRegister}
+            >
+              Register
+            </button>
           </div>
         </div>
       </div>
